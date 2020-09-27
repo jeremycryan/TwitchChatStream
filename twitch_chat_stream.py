@@ -22,14 +22,16 @@ class Stream:
             channel is provided.
         """
         self.queue_mutex = threading.Lock()
-        self.open(channel)
+        self.running = False
+        if channel:
+            self.open(channel)
 
     def open(self, channel):
         """ Open a socket connection to the given channel, send information
             over IRC, and start populating self.queue with data.
         """
         self.channel = f"#{channel}"
-        self.queue = []
+        self._queue = []
         self.running = True
 
         self.sock = socket.socket()
@@ -56,13 +58,13 @@ class Stream:
                 user = line[1:].split("!")[0].strip()
                 msg = line.split(":")[2].strip()
                 with self.queue_mutex:
-                    self.queue.append(self.Message(user, msg))
+                    self._queue.append(self.Message(user, msg))
 
     def close(self):
         """ Close the connection and empty the queue. """
         self.running = False
         with self.queue_mutex:
-            self.queue = []
+            self._queue = []
         self.sock.close()
 
     def queue_flush(self):
@@ -72,6 +74,6 @@ class Stream:
         if not self.running:
             return ()
         with self.queue_mutex:
-            result = tuple(self.queue)
-            self.queue = []
+            result = tuple(self._queue)
+            self._queue = []
         return result
