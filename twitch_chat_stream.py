@@ -56,7 +56,7 @@ class Stream:
                 if len(line)<=2 or not "!" in line:
                     continue
                 user = line[1:].split("!")[0].strip()
-                msg = line.split(":")[2].strip()
+                msg = ":".join(line.split(":")[2:]).strip()
                 with self.queue_mutex:
                     self._queue.append(self.Message(user, msg))
 
